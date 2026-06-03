@@ -4,17 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import java.math.BigDecimal;
+import lombok.ToString;
 
+@Data
 @Entity
 @Table(name = "PRODUCTO")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Producto {
 
     @Id
@@ -22,29 +17,20 @@ public class Producto {
     @Column(name = "id_producto")
     private Integer idProducto;
 
-    // --- RELACIÓN ORM (N a 1) ---
-    // Muchos productos pertenecen a una categoría.
-    @NotNull(message = "Debe seleccionar una categoría")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_categoria", nullable = false)
-    private Categoria categoria;
-
-    // --- VALIDACIONES Y RESTRICCIONES ---
     @NotBlank(message = "El nombre del producto no puede estar vacío")
-    @Size(min = 3, max = 150, message = "El nombre debe tener entre 3 y 150 caracteres")
     @Column(nullable = false, length = 150)
     private String nombre;
 
     @Column(columnDefinition = "VARCHAR(MAX)")
     private String descripcion;
 
-    @NotNull(message = "El precio es obligatorio")
+    @NotNull(message = "Debe ingresar un precio")
     @Min(value = 0, message = "El precio no puede ser negativo")
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precio;
+    @Column(nullable = false)
+    private Double precio;
 
-    @NotNull(message = "El stock es obligatorio")
-    @Min(value = 0, message = "El stock no puede ser negativo")
+    @NotNull(message = "Debe ingresar el stock inicial")
+    @Min(value = 0, message = "El stock no puede ser menor a 0")
     @Column(nullable = false)
     private Integer stock;
 
@@ -53,4 +39,12 @@ public class Producto {
 
     @Column(nullable = false)
     private Boolean estado = true;
+
+    // Relación: Muchos productos pertenecen a una categoría
+    // El @ToString.Exclude es obligatorio aquí para romper el ciclo de lectura
+    @NotNull(message = "Debe seleccionar una categoría")
+    @ManyToOne
+    @JoinColumn(name = "id_categoria", nullable = false)
+    @ToString.Exclude
+    private Categoria categoria;
 }

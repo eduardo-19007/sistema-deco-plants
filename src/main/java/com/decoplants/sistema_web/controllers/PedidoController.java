@@ -24,19 +24,22 @@ public class PedidoController {
     @PostMapping("/registrar-pedido")
     public String registrarPedido(@ModelAttribute Pedido pedido) {
         
-        // 1. Buscar el producto seleccionado
+// 1. Buscar el producto seleccionado
+        // Pedimos el objeto producto completo que viene del formulario, y de ahí sacamos su ID
         Producto producto = productoRepository.findById(pedido.getIdProducto()).orElse(null);
-        
+
         // Validar si existe y si hay stock
         if (producto == null || producto.getStock() < pedido.getCantidad()) {
-            return "redirect:/?errorStock"; 
+            return "redirect:/?errorStock";
         }
 
         // 2. CALCULAR EL TOTAL (Precio Unitario * Cantidad)
-        BigDecimal cantidadBd = new BigDecimal(pedido.getCantidad());
-        BigDecimal totalCalculado = producto.getPrecio().multiply(cantidadBd);
-        pedido.setTotal(totalCalculado);
-
+        // Como 'precio' es Double, podemos usar matemática simple (*)
+        Double totalCalculado = producto.getPrecio() * pedido.getCantidad();
+        
+        // Asignamos el total al pedido
+        // (OJO: Asegúrate de que en tu archivo Pedido.java el campo 'total' también sea de tipo Double)
+        pedido.setTotal(java.math.BigDecimal.valueOf(totalCalculado));
         // 3. DESCONTAR EL STOCK (Gestión de Inventario)
         producto.setStock(producto.getStock() - pedido.getCantidad());
         productoRepository.save(producto);
