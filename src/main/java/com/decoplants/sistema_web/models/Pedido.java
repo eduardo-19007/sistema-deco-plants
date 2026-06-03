@@ -2,14 +2,18 @@ package com.decoplants.sistema_web.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "PEDIDO")
 @Data
 public class Pedido {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_pedido")
@@ -32,10 +36,9 @@ public class Pedido {
 
     @Column(name = "notas_pedido", columnDefinition = "VARCHAR(MAX)")
     private String notasPedido;
-    
-    // Añade el campo total
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal total;
+
+    @Column(name = "total_pedido", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalPedido;
 
     @Column(name = "fecha_pedido", nullable = false)
     private LocalDateTime fechaPedido;
@@ -43,10 +46,17 @@ public class Pedido {
     @Column(nullable = false, length = 30)
     private String estado;
 
-    // Campos para enlazar la venta con el inventario (Proceso 1 y 2)
-    @Column(name = "id_producto", nullable = false)
-    private Integer idProducto;
+    // ========================================================
+    // RELACIÓN: Un pedido tiene MUCHOS detalles (productos)
+    // ========================================================
+    // cascade = CascadeType.ALL permite que al guardar un Pedido, se guarden sus detalles automáticamente
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude // Evita bucles infinitos al imprimir en consola
+    private List<DetallePedido> detalles = new ArrayList<>();
 
-    @Column(nullable = false)
-    private Integer cantidad;
+    // Método de ayuda para vincular detalles fácilmente desde el servicio
+    public void addDetalle(DetallePedido detalle) {
+        detalles.add(detalle);
+        detalle.setPedido(this);
+    }
 }

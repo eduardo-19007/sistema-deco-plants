@@ -1,53 +1,30 @@
 package com.decoplants.sistema_web.controllers;
 
 import com.decoplants.sistema_web.models.Pedido;
-import com.decoplants.sistema_web.models.Producto;
-import com.decoplants.sistema_web.repositories.PedidoRepository;
-import com.decoplants.sistema_web.repositories.ProductoRepository;
+import com.decoplants.sistema_web.services.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class PedidoController {
 
     @Autowired
-    private PedidoRepository pedidoRepository;
-    
-    @Autowired
-    private ProductoRepository productoRepository;
+    private PedidoService pedidoService;
 
     @PostMapping("/registrar-pedido")
-    public String registrarPedido(@ModelAttribute Pedido pedido) {
+    public String registrarPedido(@ModelAttribute Pedido pedido, 
+                                  @RequestParam Integer idProducto, 
+                                  @RequestParam Integer cantidad) {
         
-// 1. Buscar el producto seleccionado
-        // Pedimos el objeto producto completo que viene del formulario, y de ahí sacamos su ID
-        Producto producto = productoRepository.findById(pedido.getIdProducto()).orElse(null);
+        // Pasamos el pedido (cliente y envío) junto con el producto y cantidad al servicio
+        String resultado = pedidoService.procesarNuevoPedido(pedido, idProducto, cantidad);
 
-        // Validar si existe y si hay stock
-        if (producto == null || producto.getStock() < pedido.getCantidad()) {
+        if ("ERROR_STOCK".equals(resultado)) {
             return "redirect:/?errorStock";
         }
-
-        // 2. CALCULAR EL TOTAL (Precio Unitario * Cantidad)
-        // Como 'precio' es Double, podemos usar matemática simple (*)
-        Double totalCalculado = producto.getPrecio() * pedido.getCantidad();
-        
-        // Asignamos el total al pedido
-        // (OJO: Asegúrate de que en tu archivo Pedido.java el campo 'total' también sea de tipo Double)
-        pedido.setTotal(java.math.BigDecimal.valueOf(totalCalculado));
-        // 3. DESCONTAR EL STOCK (Gestión de Inventario)
-        producto.setStock(producto.getStock() - pedido.getCantidad());
-        productoRepository.save(producto);
-
-        // 4. GUARDAR EL PEDIDO
-        pedido.setFechaPedido(LocalDateTime.now());
-        pedido.setEstado("Pendiente"); 
-        pedidoRepository.save(pedido);
 
         return "redirect:/?exito";
     }

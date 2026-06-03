@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 
+import java.math.BigDecimal; // <-- 1. Importamos la clase BigDecimal de Java
+
 @Data
 @Entity
 @Table(name = "PRODUCTO")
@@ -24,10 +26,12 @@ public class Producto {
     @Column(columnDefinition = "VARCHAR(MAX)")
     private String descripcion;
 
+    // 2. Cambiamos de Double a BigDecimal. 
+    // También le indicamos a JPA la precisión (10 dígitos enteros y 2 decimales)
     @NotNull(message = "Debe ingresar un precio")
     @Min(value = 0, message = "El precio no puede ser negativo")
-    @Column(nullable = false)
-    private Double precio;
+    @Column(nullable = false, precision = 10, scale = 2) 
+    private BigDecimal precio;
 
     @NotNull(message = "Debe ingresar el stock inicial")
     @Min(value = 0, message = "El stock no puede ser menor a 0")
@@ -40,8 +44,6 @@ public class Producto {
     @Column(nullable = false)
     private Boolean estado = true;
 
-    // Relación: Muchos productos pertenecen a una categoría
-    // El @ToString.Exclude es obligatorio aquí para romper el ciclo de lectura
     @NotNull(message = "Debe seleccionar una categoría")
     @ManyToOne
     @JoinColumn(name = "id_categoria", nullable = false)
