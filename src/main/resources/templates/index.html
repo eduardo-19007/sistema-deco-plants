@@ -14,6 +14,7 @@
     </nav>
 
     <main class="container my-5">
+        
         <div class="alert alert-success alert-dismissible fade show" th:if="${param.exito}">
             <i class="bi bi-check-circle-fill me-2"></i> <strong>¡Pedido Registrado!</strong> Tu orden ha sido enviada a producción.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -32,8 +33,18 @@
         <div class="row g-4 mb-5">
             <div class="col-12 col-sm-6 col-md-4" th:each="producto : ${productos}">
                 <div class="card h-100 product-card border-0 shadow-sm">
-                    <div class="bg-light text-center py-5 rounded-top">
-                        <i class="bi bi-flower2 text-success display-1"></i>
+                    
+                    <div class="bg-light text-center rounded-top overflow-hidden" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                        
+                        <img th:if="${producto.imagen != null and producto.imagen != ''}" 
+                             th:src="@{'/recursos/' + ${producto.imagen}}" 
+                             alt="Imagen de planta" 
+                             class="img-fluid w-100 h-100" style="object-fit: cover;">
+                             
+                        <div th:unless="${producto.imagen != null and producto.imagen != ''}">
+                            <i class="bi bi-image text-secondary opacity-50" style="font-size: 5rem;"></i>
+                        </div>
+                        
                     </div>
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title fw-bold mt-1" th:text="${producto.nombre}">Producto</h5>

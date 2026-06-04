@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{plantilla :: head('Atención al Cliente - Deco Plants')}"></head>
+
+<body class="bg-light">
+
+    <nav th:replace="~{plantilla :: navbar-admin}"></nav>
+
+    <main class="container mb-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-headset me-2"></i>Bandeja de Incidencias (Soporte)</h4>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Fecha de Ingreso</th>
+                                <th>Datos de Contacto</th>
+                                <th>Detalle del Ticket</th>
+                                <th>Estado Actual</th>
+                                <th>Acción / Resolución</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="inc : ${incidencias}">
+                                
+                                <td class="fw-bold text-secondary" th:text="'#TK-' + ${inc.idIncidencia}">#TK-1</td>
+                                
+                                <td th:text="${#temporals.format(inc.fechaRegistro, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                                
+                                <td>
+                                    <div class="fw-bold" th:text="${inc.nombreCliente}"></div>
+                                    <div class="small text-muted"><i class="bi bi-telephone-fill me-1"></i>[[${inc.telefono}]]</div>
+                                </td>
+                                
+                                <td>
+                                    <span class="badge bg-secondary mb-1" th:text="${inc.tipo}">Tipo</span>
+                                    <p class="small mb-0 text-break" style="max-width: 300px;" th:text="${inc.descripcion}">Descripción</p>
+                                </td>
+                                
+                                <td>
+                                    <span class="badge bg-danger" th:if="${inc.estado == 'Abierto'}">Abierto (Pendiente)</span>
+                                    <span class="badge bg-warning text-dark" th:if="${inc.estado == 'En Revision'}">En Revisión</span>
+                                    <span class="badge bg-success" th:if="${inc.estado == 'Resuelto'}">Resuelto / Cerrado</span>
+                                </td>
+                                
+                                <td>
+                                    <form th:action="@{/admin/incidencias/actualizar-estado/{id}(id=${inc.idIncidencia})}" method="POST">
+                                        
+                                        <input type="hidden" name="nuevoEstado" value="En Revision" th:if="${inc.estado == 'Abierto'}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" th:if="${inc.estado == 'Abierto'}">
+                                            <i class="bi bi-search"></i> Iniciar Revisión
+                                        </button>
+
+                                        <input type="hidden" name="nuevoEstado" value="Resuelto" th:if="${inc.estado == 'En Revision'}">
+                                        <button type="submit" class="btn btn-sm btn-warning" th:if="${inc.estado == 'En Revision'}">
+                                            <i class="bi bi-check2-all"></i> Marcar Resuelto
+                                        </button>
+
+                                        <button type="button" class="btn btn-sm btn-outline-success disabled" th:if="${inc.estado == 'Resuelto'}">
+                                            <i class="bi bi-shield-check"></i> Ticket Cerrado
+                                        </button>
+                                        
+                                    </form>
+                                </td>
+                            </tr>
+                            
+                            <tr th:if="${#lists.isEmpty(incidencias)}">
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-emoji-smile fs-1 d-block mb-3 text-success"></i>
+                                    <h5>¡Excelente trabajo!</h5>
+                                    <p class="mb-0">No hay incidencias ni reclamos pendientes de atención.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{plantilla :: scripts}"></div>
+</body>
+</html>

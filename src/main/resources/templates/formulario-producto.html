@@ -15,8 +15,10 @@
                     </div>
                     <div class="card-body p-4">
                         
-                        <form th:action="@{/admin/productos/guardar}" th:object="${producto}" method="POST">
+                        <form th:action="@{/admin/productos/guardar}" th:object="${producto}" method="POST" enctype="multipart/form-data">
+                            
                             <input type="hidden" th:field="*{idProducto}" />
+                            
                             <div class="row g-3">
                                 
                                 <div class="col-md-12">
@@ -56,8 +58,16 @@
                                 </div>
 
                                 <div class="col-md-12">
-                                    <label class="form-label fw-bold text-secondary">Ruta de la Imagen</label>
-                                    <input type="text" class="form-control" th:field="*{imagen}" placeholder="/img/ejemplo.jpg">
+                                    <label class="form-label fw-bold text-secondary">Imagen del Producto (Opcional)</label>
+                                    
+                                    <div th:if="*{imagen != null and imagen != ''}" class="mb-2">
+                                        <span class="badge bg-info text-dark">
+                                            <i class="bi bi-image me-1"></i> Imagen actual guardada
+                                        </span>
+                                    </div>
+                                    
+                                    <input type="file" class="form-control" name="file" accept="image/png, image/jpeg, image/webp">
+                                    <input type="hidden" th:field="*{imagen}">
                                 </div>
 
                             </div>
@@ -69,6 +79,7 @@
                                 <button type="submit" class="btn btn-success"><i class="bi bi-save me-1"></i> Guardar Producto</button>
                             </div>
                         </form>
+                        
                     </div>
                 </div>
             </div>

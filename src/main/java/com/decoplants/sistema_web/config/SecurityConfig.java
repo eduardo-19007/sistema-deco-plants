@@ -1,9 +1,12 @@
 package com.decoplants.sistema_web.config;
 
+// Importaciones del núcleo de Spring y Spring Security
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+// Importaciones para la gestión de usuarios y contraseñas
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,49 +14,68 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Clase de Configuración Global de Seguridad.
+ * @Configuration indica que esta clase provee "Beans" (objetos gestionados por Spring) al contexto de la aplicación.
+ * @EnableWebSecurity activa los filtros de seguridad web que interceptarán todas las peticiones HTTP entrantes.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Define la cadena de filtros de seguridad (Security Filter Chain).
+     * Actúa como un muro de contención (similar a un firewall de aplicación) 
+     * que evalúa cada paquete HTTP antes de que alcance a tus Controladores.
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             // =========================================================
-            // 1. CONFIGURACIÓN CSRF (PROTECCIÓN CONTRA ATAQUES EXTERNOS)
+            // 1. CONFIGURACIÓN CSRF (Cross-Site Request Forgery)
             // =========================================================
-            // Por defecto, Spring bloquea peticiones POST/PUT/DELETE externas (como Postman).
-            // Con esta línea, le decimos que ignore esa regla SOLO para las rutas de nuestra API REST.
+            // CSRF es una vulnerabilidad donde un sitio malicioso engaña al navegador 
+            // para enviar peticiones no autorizadas a nuestro servidor.
+            // Spring lo bloquea por defecto. Aquí desactivamos esa protección EXCLUSIVAMENTE 
+            // para las rutas "/api/**" porque los clientes REST (como Postman o un frontend en React) 
+            // no usan sesiones de navegador, sino que son "Stateless" (sin estado).
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             
             // =========================================================
-            // 2. CONFIGURACIÓN DE RUTAS Y PERMISOS
+            // 2. CONFIGURACIÓN DE RUTAS Y CONTROL DE ACCESO (ACL)
             // =========================================================
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas: Accesibles para cualquier visitante sin iniciar sesión.
-                // Se incluyó "/api/**" para que Postman y otros clientes externos puedan interactuar libremente.
-                .requestMatchers("/", "/registrar-pedido", "/registrar-incidencia", "/css/**", "/img/**", "/js/**", "/api/**").permitAll()
+                // Lista Blanca (Whitelist): Rutas públicas sin restricción.
+                // Incluye recursos estáticos (CSS, JS, IMG) y los endpoints públicos (Home, Registrar Pedido, API).
+                .requestMatchers("/", "/registrar-pedido", "/registrar-incidencia", "/css/**", "/img/**", "/js/**", "/api/**", "/recursos/**").permitAll()
                 
-                // Rutas privadas: Solo los usuarios con el rol "ADMIN" pueden acceder a las URLs del panel.
+                // Restricción por Roles: Cualquier URL que empiece con "/admin/" 
+                // requerirá estrictamente que el usuario autenticado posea el rol "ADMIN".
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
-                // Cualquier otra ruta no especificada arriba requerirá autenticación por defecto.
+                // Regla por Defecto: Si el programador olvida mapear una ruta nueva en el futuro, 
+                // el sistema la bloqueará por defecto, exigiendo autenticación. (Principio de Privilegio Mínimo).
                 .anyRequest().authenticated()
             )
             
             // =========================================================
-            // 3. CONFIGURACIÓN DEL FORMULARIO DE LOGIN
+            // 3. CONFIGURACIÓN DEL FORMULARIO DE LOGIN (Autenticación)
             // =========================================================
             .formLogin(login -> login
-                .loginPage("/login") // Le indicamos a Spring que use nuestra vista HTML personalizada.
-                .defaultSuccessUrl("/admin/pedidos", true) // Redirección al panel si las credenciales son correctas.
-                .permitAll() // Permitimos que todos puedan ver la página de login.
+                // Redirige al LoginController que creamos anteriormente.
+                .loginPage("/login") 
+                // true = Fuerza la redirección al panel de pedidos siempre que el login sea exitoso,
+                // evitando que el usuario sea devuelto a una página aleatoria.
+                .defaultSuccessUrl("/admin/pedidos", true) 
+                .permitAll()
             )
             
             // =========================================================
-            // 4. CONFIGURACIÓN DEL CIERRE DE SESIÓN
+            // 4. CONFIGURACIÓN DEL CIERRE DE SESIÓN (Logout)
             // =========================================================
             .logout(logout -> logout
-                .logoutSuccessUrl("/") // Redirección automática a la tienda pública al salir.
+                // Invalida la sesión actual en el servidor y devuelve al usuario a la vista pública.
+                .logoutSuccessUrl("/") 
                 .permitAll()
             );
             
@@ -61,26 +83,36 @@ public class SecurityConfig {
     }
 
     // =========================================================
-    // 5. CONFIGURACIÓN DE USUARIOS (EN MEMORIA)
+    // 5. PROVEEDOR DE IDENTIDAD (EN MEMORIA)
     // =========================================================
+    /**
+     * Configura un almacén de usuarios temporal.
+     * En lugar de consultar una tabla de base de datos relacional, 
+     * el usuario administrador se carga directamente en la memoria RAM del servidor al iniciar.
+     */
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
-        // Creamos un usuario administrador directamente en el código (ideal para esta fase de desarrollo).
         UserDetails admin = User.builder()
-            .username("admin") // <--- Usuario para ingresar al panel
-            .password(passwordEncoder().encode("admin123")) // <--- Contraseña encriptada por seguridad
-            .roles("ADMIN") // Se le asigna el rol definido en las rutas privadas
+            .username("admin")
+            // La contraseña en texto plano ("admin123") se pasa por la función de hash 
+            // ANTES de guardarse en memoria, cumpliendo los estándares de criptografía.
+            .password(passwordEncoder().encode("admin123")) 
+            .roles("ADMIN")
             .build();
             
         return new InMemoryUserDetailsManager(admin);
     }
 
     // =========================================================
-    // 6. MOTOR DE ENCRIPTACIÓN DE CONTRASEÑAS
+    // 6. MOTOR DE CRIPTOGRAFÍA (Hashing)
     // =========================================================
+    /**
+     * Define el algoritmo criptográfico para proteger las contraseñas.
+     * BCrypt no solo encripta, sino que aplica un "Salt" (datos aleatorios adicionales) 
+     * a cada contraseña para neutralizar ataques de fuerza bruta o de tablas arcoíris.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt es el estándar de la industria actual para encriptar contraseñas de forma segura.
         return new BCryptPasswordEncoder();
     }
 }

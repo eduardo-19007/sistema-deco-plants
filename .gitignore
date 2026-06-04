@@ -30,3 +30,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignorar las imágenes subidas localmente
+uploads/
