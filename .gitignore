@@ -32,4 +32,4 @@ build/
 .vscode/
 
 # Ignorar las imágenes subidas localmente
-uploads/
+uploads/gi
