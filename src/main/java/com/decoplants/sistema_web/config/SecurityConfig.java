@@ -12,21 +12,17 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 
-//Clase de Configuración Global de Seguridad.
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    //Define la cadena de filtros de seguridad (Security Filter Chain).
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
         
-            // Spring lo bloquea por defecto. Aquí desactivamos esa protección EXCLUSIVAMENTE 
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
-                // Lista Blanca (Whitelist): Rutas públicas sin restricción.
                 .requestMatchers("/", "/registrar-pedido", "/registrar-incidencia", "/css/**", "/img/**", "/js/**", "/api/**", "/recursos/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
