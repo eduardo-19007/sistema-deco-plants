@@ -1,30 +1,49 @@
 package com.decoplants.sistema_web.config;
 
+import com.decoplants.sistema_web.services.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-        
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+            .csrf(csrf -> csrf.disable()) // Se deshabilita CSRF para permitir peticiones API fluidas
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/registrar-pedido", "/registrar-incidencia", "/css/**", "/img/**", "/js/**", "/api/**", "/recursos/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                // RUTAS PÚBLICAS (Vistas y API lectura)
+                .requestMatchers("/", "/index.html", "/registrar-pedido", "/registrar-incidencia").permitAll()
+                .requestMatchers("/css/**", "/img/**", "/js/**", "/recursos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll() 
+                .requestMatchers("/api/auth/login").permitAll() // Endpoint para obtener el JWT
+
+                // RUTAS PROTEGIDAS PARA EL PANEL WEB (Thymeleaf)
+                .requestMatchers("/admin/productos/**").hasRole("ADMIN")
+                .requestMatchers("/admin/pedidos/**", "/admin/incidencias/**").hasAnyRole("ADMIN", "VENDEDOR")
+
+                // RUTAS PROTEGIDAS API REST (Solo Modificación con JWT)
+                .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/productos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasRole("ADMIN")
+                
                 .anyRequest().authenticated()
             )
             .formLogin(login -> login
@@ -35,23 +54,21 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutSuccessUrl("/") 
                 .permitAll()
-            );
+            )
+            // Aquí inyectamos nuestro filtro JWT antes del filtro estándar de Spring
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
             
         return http.build();
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails admin = User.builder()
-            .username("admin")
-            .password(passwordEncoder().encode("admin123")) 
-            .roles("ADMIN")
-            .build();
-            
-        return new InMemoryUserDetailsManager(admin);
-    }
-    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // Exponemos el AuthenticationManager para usarlo en nuestro AuthRestController
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }

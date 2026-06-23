@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deco Plants - Catálogo y Pedidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <style>
+        /* Animación suave para las tarjetas */
+        .card-producto {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .card-producto:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        /* Banner degradado moderno */
+        .hero-section {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            border-radius: 20px;
+            color: white;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 20px rgba(32, 201, 151, 0.2);
+        }
+        
+        /* Suavizar la carga de la página (Fade in) */
+        body {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-bold" id="toastMessage">
+                    </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-flower1 text-success me-2"></i>DECO PLANTS</a>
+            <div>
+                <a href="#postventa" class="btn btn-outline-light btn-sm me-2">Atención al Cliente</a>
+                <a href="/login" class="btn btn-success btn-sm"><i class="bi bi-box-arrow-in-right me-1"></i> Ingresar</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-5">
+        
+        <div class="hero-section text-center">
+            <h1 class="display-4 fw-bold"><i class="bi bi-flower2 me-2"></i>Bienvenido a Deco Plants</h1>
+            <p class="lead">Descubre nuestra exclusiva selección de plantas y arreglos para darle vida a tus espacios.</p>
+            <a href="#formulario-compra" class="btn btn-light btn-lg mt-3 text-success fw-bold shadow-sm rounded-pill px-4">
+                Comprar Ahora <i class="bi bi-arrow-right-short ms-1"></i>
+            </a>
+        </div>
+
+        <h2 class="h3 fw-bold border-bottom border-success pb-2 mb-4">Catálogo de Productos</h2>
+        
+        <div class="row g-4 mb-5" id="catalogo-productos">
+            </div>
+
+        <div id="formulario-compra" class="card border-0 shadow-sm rounded-3 mt-5">
+            <div class="card-header bg-success text-white p-3">
+                <h3 class="h5 mb-0 fw-bold"><i class="bi bi-cart-check me-2"></i>Registrar Compra Rápida</h3>
+            </div>
+            <div class="card-body p-4">
+                <form action="/registrar-pedido" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold text-secondary small">Seleccionar Producto</label>
+                            <select class="form-select" name="idProducto" id="select-compra" required>
+                                <option value="" disabled selected>Cargando productos disponibles...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-secondary small">Cantidad</label>
+                            <input type="number" class="form-control" name="cantidad" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Nombres y Apellidos</label>
+                            <input type="text" class="form-control" name="nombreCliente" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Teléfono</label>
+                            <input type="tel" class="form-control" name="telefonoCliente" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary small">Dirección de Entrega</label>
+                            <input type="text" class="form-control" name="direccionEnvio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Modalidad de Pago</label>
+                            <select class="form-select" name="metodoPago" required>
+                                <option value="Contra Entrega">Contra Entrega</option>
+                                <option value="Transferencia">Transferencia / Yape</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Tipo de Despacho</label>
+                            <select class="form-select" name="modalidadEntrega" required>
+                                <option value="Delivery">Delivery a Domicilio</option>
+                                <option value="Tienda">Recojo en Tienda</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-success px-4">Procesar Orden</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="postventa" class="card border-0 shadow-sm rounded-3 mt-5">
+            <div class="card-header bg-dark text-white p-3">
+                <h3 class="h5 mb-0 fw-bold"><i class="bi bi-headset me-2"></i>Atención al Cliente (Postventa)</h3>
+            </div>
+            <div class="card-body p-4">
+                <form action="/registrar-incidencia" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary small">Nombres y Apellidos</label>
+                            <input type="text" class="form-control" name="nombreCliente" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-secondary small">Teléfono</label>
+                            <input type="tel" class="form-control" name="telefono" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-secondary small">Motivo</label>
+                            <select class="form-select" name="tipo" required>
+                                <option value="Consulta">Consulta de pedido</option>
+                                <option value="Reclamo">Reclamo / Problema</option>
+                                <option value="Cambio">Solicitud de Cambio</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary small">Detalle del Mensaje</label>
+                            <textarea class="form-control" name="descripcion" rows="3" required></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-dark px-4">Enviar Mensaje</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const parametros = new URLSearchParams(window.location.search);
+            const toastEl = document.getElementById('liveToast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            if (parametros.has('exito')) {
+                toastEl.classList.add('bg-success');
+                toastMessage.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> ¡Pedido Registrado con éxito!';
+                new bootstrap.Toast(toastEl, { delay: 4000 }).show();
+            } else if (parametros.has('errorStock')) {
+                toastEl.classList.add('bg-danger');
+                toastMessage.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i> Error: Stock insuficiente.';
+                new bootstrap.Toast(toastEl, { delay: 5000 }).show();
+            } else if (parametros.has('reclamoExito')) {
+                toastEl.classList.add('bg-info', 'text-dark');
+                toastEl.classList.remove('text-white');
+                toastMessage.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i> Solicitud de soporte recibida.';
+                new bootstrap.Toast(toastEl, { delay: 5000 }).show();
+            }
+
+            let paginaActual = 0;
+            const tamañoPagina = 6; 
+
+            function cargarCatalogo(page) {
+                fetch(`/api/productos?page=${page}&size=${tamañoPagina}&sortField=nombre&sortDir=asc`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const zonaCatalogo = document.getElementById("catalogo-productos");
+                        const selectCompra = document.getElementById("select-compra");
+                        
+                        zonaCatalogo.innerHTML = "";
+                        const productos = data.content;
+
+                        if (productos.length === 0 && page === 0) {
+                            zonaCatalogo.innerHTML = `<div class="col-12 text-center text-muted py-5"><h5>No se encontraron productos disponibles en el inventario.</h5></div>`;
+                            return;
+                        }
+
+                        selectCompra.innerHTML = `<option value="" disabled selected>Elige un producto del catálogo...</option>`;
+
+                        productos.forEach(prod => {
+                            const nodoImagen = (prod.imagen) 
+                                ? `<img src="/recursos/${prod.imagen}" alt="${prod.nombre}" class="img-fluid w-100 h-100" style="object-fit: cover;">`
+                                : `<i class="bi bi-image text-secondary opacity-50" style="font-size: 5rem;"></i>`;
+
+                            const nodoStock = (prod.stock > 0)
+                                ? `<small class="text-muted">Stock disponible: ${prod.stock}</small>`
+                                : `<span class="badge bg-danger">¡Agotado!</span>`;
+
+                            // Aquí integramos la clase "card-producto" para la animación hover
+                            zonaCatalogo.innerHTML += `
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="card card-producto h-100 border-0 shadow-sm">
+                                        <div class="bg-light text-center rounded-top overflow-hidden" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                                            ${nodoImagen}
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title fw-bold mt-1">${prod.nombre}</h5>
+                                            <p class="card-text text-secondary small flex-grow-1">${prod.descripcion || ''}</p>
+                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                                <span class="fs-5 fw-bold text-success">S/. ${prod.precio.toFixed(2)}</span>
+                                            </div>
+                                            <div class="mt-2 text-end">
+                                                ${nodoStock}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+
+                            if (prod.stock > 0) {
+                                selectCompra.innerHTML += `<option value="${prod.idProducto}">${prod.nombre} (S/. ${prod.precio.toFixed(2)})</option>`;
+                            }
+                        });
+
+                        renderizarControlesPaginacion(data, zonaCatalogo);
+                    })
+                    .catch(err => {
+                        console.error("Fallo al obtener el catálogo:", err);
+                        document.getElementById("catalogo-productos").innerHTML = `<div class="col-12 text-center text-danger py-5"><h5>Error de conexión con el catálogo.</h5></div>`;
+                    });
+            }
+
+            function renderizarControlesPaginacion(dataPage, contenedor) {
+                if(dataPage.totalPages <= 1) return;
+
+                let htmlPaginacion = `
+                <div class="col-12 d-flex justify-content-center mt-4">
+                    <nav aria-label="Navegación del catálogo">
+                        <ul class="pagination pagination-sm shadow-sm">
+                            <li class="page-item ${dataPage.first ? 'disabled' : ''}">
+                                <button class="page-link text-success" onclick="cambiarPagina(${dataPage.number - 1})">Anterior</button>
+                            </li>`;
+
+                for(let i = 0; i < dataPage.totalPages; i++) {
+                    htmlPaginacion += `
+                            <li class="page-item ${dataPage.number === i ? 'active' : ''}">
+                                <button class="page-link ${dataPage.number === i ? 'bg-success border-success text-white' : 'text-success'}" onclick="cambiarPagina(${i})">${i + 1}</button>
+                            </li>`;
+                }
+
+                htmlPaginacion += `
+                            <li class="page-item ${dataPage.last ? 'disabled' : ''}">
+                                <button class="page-link text-success" onclick="cambiarPagina(${dataPage.number + 1})">Siguiente</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>`;
+
+                contenedor.innerHTML += htmlPaginacion;
+            }
+
+            window.cambiarPagina = function(nuevaPagina) {
+                paginaActual = nuevaPagina;
+                cargarCatalogo(paginaActual);
+                document.getElementById('catalogo-productos').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // Iniciar carga
+            cargarCatalogo(paginaActual);
+        });
+    </script>
+</body>
+</html>
