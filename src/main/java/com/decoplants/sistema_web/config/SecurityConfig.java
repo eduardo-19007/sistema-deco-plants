@@ -47,10 +47,22 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .formLogin(login -> login
-                .loginPage("/login") 
-                .defaultSuccessUrl("/admin/pedidos", true) 
+                .loginPage("/login")
+                .successHandler((request, response, authentication) -> {
+                    // Obtenemos los roles del usuario que acaba de iniciar sesión
+                    boolean isAdminOrVendedor = authentication.getAuthorities().stream()
+                        .anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN") || r.getAuthority().equals("ROLE_VENDEDOR"));
+                    
+                    // Si es administrador o vendedor, va al panel de control
+                    if (isAdminOrVendedor) {
+                        response.sendRedirect("/admin/pedidos");
+                    } else {
+                        // Si es un CLIENTE normal, lo mandamos a la página principal (catálogo)
+                        response.sendRedirect("/"); 
+                    }
+                })
                 .permitAll()
-            )
+            ) // <-- ¡Corregido! Solo un paréntesis de cierre aquí
             .logout(logout -> logout
                 .logoutSuccessUrl("/") 
                 .permitAll()
